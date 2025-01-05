@@ -17,6 +17,26 @@ const ImageUploader = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
 
+    const saveWordsToDictionary = async (words: AnalysisResult[]) => {
+        try {
+            const { error } = await supabase
+                .from('word_analyses')
+                .insert(
+                    words.map(word => ({
+                        word: word.word,
+                        definition: word.definition,
+                        sample_sentence: word.sampleSentence
+                    }))
+                );
+
+            if (error) throw error;
+            toast.success('Words saved to your dictionary!');
+        } catch (error) {
+            console.error('Error saving words:', error);
+            toast.error('Failed to save words to dictionary');
+        }
+    };
+
     const uploadAndAnalyzeImage = async (file: File) => {
         try {
             setIsAnalyzing(true);
@@ -48,7 +68,12 @@ const ImageUploader = () => {
                 throw new Error('Failed to analyze image');
             }
 
-            setAnalysisResults(response.data.analysis);
+            const results = response.data.analysis;
+            setAnalysisResults(results);
+            
+            // Save words to dictionary
+            await saveWordsToDictionary(results);
+            
             toast.success('Image analyzed successfully!');
         } catch (error) {
             console.error('Error:', error);
