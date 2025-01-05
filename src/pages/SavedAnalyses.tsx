@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { useState } from "react";
 
 const SavedAnalyses = () => {
+    const [isDebugMode] = useState(true); // Set to true for debugging
+
     const generateAudio = async (text: string): Promise<ArrayBuffer> => {
         console.log(`Requesting audio generation for: ${text}`);
         const response = await supabase.functions.invoke('generate-audio', {
@@ -56,7 +59,7 @@ const SavedAnalyses = () => {
                                 <AudioPlayer 
                                     word={analysis.word} 
                                     onGenerateAudio={generateAudio}
-                                    debug={false}
+                                    debug={isDebugMode}
                                 />
                             </CardHeader>
                             <CardContent className="space-y-4">
