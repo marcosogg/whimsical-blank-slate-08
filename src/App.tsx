@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
 import SavedAnalyses from "./pages/SavedAnalyses";
+import TopNav from "./components/TopNav";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         return <div>Loading...</div>;
     }
 
-    return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+    return isAuthenticated ? (
+        <>
+            <TopNav />
+            <div className="pt-16">
+                {children}
+            </div>
+        </>
+    ) : (
+        <Navigate to="/auth" />
+    );
 };
 
 const App = () => (

@@ -1,12 +1,10 @@
 import React from 'react';
 import ImageUploader from '@/components/ImageUploader';
-import Header from '@/components/Header';
 
 const Index = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex flex-col">
-            <Header />
-            <div className=" flex items-center justify-center flex-col pt-24 px-4">
+            <div className="flex items-center justify-center flex-col pt-24 px-4">
                 <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent text-center">
                     Visual Dictionary
                 </h1>
