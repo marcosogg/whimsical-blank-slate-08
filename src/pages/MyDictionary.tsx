@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import WordCard from "@/components/shared/WordCard";
 import { supabase } from "@/integrations/supabase/client";
 
-const SavedAnalyses = () => {
-    const { data: analyses, isLoading } = useQuery({
-        queryKey: ['word-analyses'],
+const MyDictionary = () => {
+    const { data: words, isLoading } = useQuery({
+        queryKey: ['dictionary-words'],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('word_analyses')
@@ -28,23 +28,29 @@ const SavedAnalyses = () => {
         <div className="min-h-screen bg-gray-50 p-4">
             <div className="max-w-4xl mx-auto space-y-6">
                 <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-                    Saved Word Analyses
+                    My Dictionary
                 </h1>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    {analyses?.map((analysis) => (
-                        <WordCard
-                            key={analysis.id}
-                            word={analysis.word}
-                            definition={analysis.definition}
-                            sampleSentence={analysis.sample_sentence}
-                            showAudio={true}
-                        />
-                    ))}
-                </div>
+                {words && words.length === 0 ? (
+                    <div className="text-center text-gray-600">
+                        <p>Your dictionary is empty. Upload some images to start learning new words!</p>
+                    </div>
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {words?.map((word) => (
+                            <WordCard
+                                key={word.id}
+                                word={word.word}
+                                definition={word.definition}
+                                sampleSentence={word.sample_sentence}
+                                showAudio={true}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-export default SavedAnalyses;
+export default MyDictionary;

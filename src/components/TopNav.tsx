@@ -1,46 +1,39 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Book } from "lucide-react";
 
 const TopNav = () => {
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
+    const handleSignOut = async () => {
         await supabase.auth.signOut();
-        navigate('/auth');
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b">
-            <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                <div className="flex items-center gap-8">
-                    <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        ImageToDict
+        <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex justify-between h-16">
+                    <div className="flex">
+                        <Link to="/" className="flex items-center">
+                            <span className="text-xl font-bold text-gray-800">
+                                Visual Dictionary
+                            </span>
+                        </Link>
                     </div>
-                    <div className="flex items-center gap-6">
-                        <Link 
-                            to="/" 
-                            className="text-gray-600 hover:text-primary transition-colors"
-                        >
-                            Home
+                    <div className="flex items-center space-x-4">
+                        <Link to="/my-dictionary">
+                            <Button variant="ghost" className="flex items-center gap-2">
+                                <Book className="h-5 w-5" />
+                                My Dictionary
+                            </Button>
                         </Link>
-                        <Link 
-                            to="/saved-analyses" 
-                            className="text-gray-600 hover:text-primary transition-colors"
+                        <Button
+                            variant="ghost"
+                            onClick={handleSignOut}
                         >
-                            Dictionary
-                        </Link>
+                            Sign Out
+                        </Button>
                     </div>
                 </div>
-                <Button
-                    onClick={handleLogout}
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white"
-                >
-                    Sign Out
-                </Button>
             </div>
         </nav>
     );

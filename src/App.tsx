@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
-import SavedAnalyses from "./pages/SavedAnalyses";
+import MyDictionary from "./pages/MyDictionary";
 import TopNav from "./components/TopNav";
 
 const queryClient = new QueryClient();
@@ -52,10 +52,10 @@ const App = () => (
                         }
                     />
                     <Route
-                        path="/saved-analyses"
+                        path="/my-dictionary"
                         element={
                             <ProtectedRoute>
-                                <SavedAnalyses />
+                                <MyDictionary />
                             </ProtectedRoute>
                         }
                     />
