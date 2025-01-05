@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 interface AudioPlayerProps {
   word: string;
   onGenerateAudio: (word: string) => Promise<ArrayBuffer>;
-  debug?: boolean;  // Added debug prop as optional
+  debug?: boolean;
 }
 
 export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlayerProps) => {
@@ -22,17 +22,24 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
         console.log(`Generating audio for word: ${word}`);
         
         const audioData = await onGenerateAudio(word);
-        console.log(`Received audio data. Size: ${audioData.byteLength} bytes`);
-        
-        if (!audioData || audioData.byteLength === 0) {
+        if (!audioData || !(audioData instanceof ArrayBuffer)) {
+          console.error('Invalid audio data received:', audioData);
           throw new Error('Invalid audio data received');
         }
         
+        console.log(`Received audio data. Size: ${audioData.byteLength} bytes`);
+        
         const blob = new Blob([audioData], { type: 'audio/mpeg' });
+        console.log('Created audio blob:', {
+          size: blob.size,
+          type: blob.type
+        });
+        
         const url = URL.createObjectURL(blob);
         
         if (audioRef.current) {
           audioRef.current.src = url;
+          console.log('Set audio source URL:', url);
           setAudioInfo({
             size: audioData.byteLength,
             type: 'audio/mpeg'
@@ -81,6 +88,9 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
         audio.removeEventListener('canplaythrough', handleCanPlay);
         audio.removeEventListener('error', handleError);
         audio.removeEventListener('ended', handleEnded);
+        if (audio.src) {
+          URL.revokeObjectURL(audio.src);
+        }
       };
     }
   }, []);
