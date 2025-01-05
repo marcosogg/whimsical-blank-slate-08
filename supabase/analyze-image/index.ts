@@ -22,6 +22,12 @@ serve(async (req) => {
 
     console.log('Processing image URL:', imageUrl);
 
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const openai = new OpenAI({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
@@ -64,6 +70,30 @@ serve(async (req) => {
       console.error('Failed to parse GPT response:', parseError);
       throw new Error('Failed to parse analysis results');
     }
+
+    // Store results in the database
+    const { error: dbError } = await supabase
+      .from('image_analysis')
+      .insert({
+        image_path: imageUrl,
+        analysis_data: analysisData
+      });
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      throw new Error('Failed to save analysis results');
+    }
+
+    // Store word analyses
+    const wordPromises = analysisData.map((item: any) => 
+      supabase.from('word_analyses').insert({
+        word: item.word,
+        definition: item.definition,
+        sample_sentence: item.sampleSentence
+      })
+    );
+
+    await Promise.all(wordPromises);
 
     return new Response(
       JSON.stringify({ analysis: analysisData }),
