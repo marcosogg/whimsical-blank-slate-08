@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from './ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface AnalysisResult {
   word: string;
