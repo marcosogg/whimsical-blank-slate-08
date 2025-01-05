@@ -17,7 +17,7 @@ serve(async (req) => {
     const { text } = await req.json();
 
     if (!text || typeof text !== 'string') {
-      console.error('Invalid or missing text input:', text);
+      console.error('[generate-audio] Invalid or missing text input:', text);
       return new Response(
         JSON.stringify({ error: 'Invalid or missing text input' }),
         { 
@@ -27,7 +27,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Generating audio for text: "${text}"`);
+    console.log(`[generate-audio] Generating audio for text: "${text}"`);
 
     const openai = new OpenAI({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
@@ -50,10 +50,9 @@ serve(async (req) => {
       throw new Error('Failed to generate audio: Empty audio data received');
     }
 
-    console.log(`Generated MP3 audio. Size: ${audioData.byteLength} bytes`);
-    console.log('Audio data type:', Object.prototype.toString.call(audioData));
+    console.log(`[generate-audio] Generated audio data. Size: ${audioData.byteLength} bytes`);
+    console.log('[generate-audio] Audio data type:', Object.prototype.toString.call(audioData));
 
-    // Return raw audio data with correct headers
     return new Response(audioData, {
       headers: {
         ...corsHeaders,
@@ -63,7 +62,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in generate-audio function:', error);
+    console.error('[generate-audio] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
     return new Response(

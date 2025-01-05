@@ -14,31 +14,35 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioInfo, setAudioInfo] = useState<{ size?: number; type?: string }>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioGenerationInProgress = useRef(false);
 
   const handlePlay = async () => {
     try {
-      if (!audioRef.current?.src) {
+      if (!audioRef.current?.src && !audioGenerationInProgress.current) {
+        audioGenerationInProgress.current = true;
         setIsLoading(true);
-        console.log(`Requesting audio generation for: ${word}`);
+        console.log(`[AudioPlayer] Requesting audio generation for: ${word}`);
         
         const audioData = await onGenerateAudio(word);
+        console.log(`[AudioPlayer] Received response from generate-audio`);
+        
         if (!audioData || !(audioData instanceof ArrayBuffer)) {
-          console.error('Invalid audio data received:', audioData);
+          console.error('[AudioPlayer] Invalid audio data received:', audioData);
           throw new Error('Invalid audio data received');
         }
         
-        console.log(`Received audio data. Type: ${Object.prototype.toString.call(audioData)}`);
-        console.log(`Audio data size: ${audioData.byteLength} bytes`);
+        console.log(`[AudioPlayer] Audio data type:`, Object.prototype.toString.call(audioData));
+        console.log(`[AudioPlayer] Audio data size: ${audioData.byteLength} bytes`);
         
         const blob = new Blob([audioData], { type: 'audio/mpeg' });
-        console.log('Created audio blob:', {
+        console.log('[AudioPlayer] Created audio blob:', {
           size: blob.size,
           type: blob.type,
           valid: blob.size > 0
         });
         
         const url = URL.createObjectURL(blob);
-        console.log('Created object URL:', url);
+        console.log('[AudioPlayer] Created object URL:', url);
         
         if (audioRef.current) {
           audioRef.current.src = url;
@@ -47,6 +51,7 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
             type: 'audio/mpeg'
           });
         }
+        audioGenerationInProgress.current = false;
       }
 
       if (audioRef.current) {
@@ -58,8 +63,9 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
         setIsPlaying(!isPlaying);
       }
     } catch (error) {
-      console.error('Error playing audio:', error);
+      console.error('[AudioPlayer] Error playing audio:', error);
       toast.error('Failed to play audio');
+      audioGenerationInProgress.current = false;
     } finally {
       setIsLoading(false);
     }
@@ -69,12 +75,12 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
     const audio = audioRef.current;
     if (audio) {
       const handleCanPlay = () => {
-        console.log('Audio can play');
+        console.log('[AudioPlayer] Audio can play');
       };
 
       const handleError = (e: Event) => {
         const error = e.currentTarget instanceof HTMLMediaElement ? e.currentTarget.error : null;
-        console.error('Audio error:', error);
+        console.error('[AudioPlayer] Audio error:', error);
         toast.error('Error loading audio');
       };
 
