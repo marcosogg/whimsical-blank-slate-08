@@ -4,11 +4,59 @@ import { Upload, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from './ui/card';
+
+interface AnalysisResult {
+  word: string;
+  definition: string;
+  sampleSentence: string;
+}
 
 const ImageUploader = () => {
   const [preview, setPreview] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const uploadAndAnalyzeImage = async (file: File) => {
+    try {
+      setIsAnalyzing(true);
+      
+      // Upload to Supabase Storage
+      const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('analyzed_images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw new Error('Failed to upload image');
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('analyzed_images')
+        .getPublicUrl(fileName);
+
+      // Call analysis function
+      const response = await supabase.functions.invoke('analyze-image', {
+        body: { imageUrl: publicUrl },
+      });
+
+      if (response.error) {
+        throw new Error('Failed to analyze image');
+      }
+
+      setAnalysisResults(response.data.analysis);
+      toast.success('Image analyzed successfully!');
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to process image');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
       const reader = new FileReader();
@@ -16,7 +64,7 @@ const ImageUploader = () => {
         setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-      toast.success('Image uploaded successfully!');
+      await uploadAndAnalyzeImage(file);
     }
   }, []);
 
@@ -30,7 +78,7 @@ const ImageUploader = () => {
   });
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4">
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-8">
       <div
         {...getRootProps()}
         className={cn(
@@ -57,7 +105,7 @@ const ImageUploader = () => {
               type="button"
               variant="outline"
               className="mx-auto"
-              onClick={(e) => e.stopPropagation()}
+              disabled={isAnalyzing}
             >
               Select Image
             </Button>
@@ -68,6 +116,12 @@ const ImageUploader = () => {
         </div>
       </div>
 
+      {isAnalyzing && (
+        <div className="text-center">
+          <p className="text-gray-600">Analyzing image...</p>
+        </div>
+      )}
+
       {preview && (
         <div className="mt-8 rounded-lg overflow-hidden">
           <img
@@ -75,6 +129,22 @@ const ImageUploader = () => {
             alt="Preview"
             className="w-full h-auto object-cover rounded-lg"
           />
+        </div>
+      )}
+
+      {analysisResults.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          {analysisResults.map((result, index) => (
+            <Card key={index} className="overflow-hidden">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold mb-2">{result.word}</h3>
+                <p className="text-gray-600 mb-4">{result.definition}</p>
+                <p className="text-sm text-gray-500 italic">
+                  "{result.sampleSentence}"
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>
