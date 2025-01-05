@@ -1,10 +1,9 @@
-// Inside ImageUploader.tsx
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Image as ImageIcon, Volume2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
-import { toast } from 'sonner'; // Use directly toast from sonner
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
@@ -15,7 +14,6 @@ interface AnalysisResult {
 }
 
 const ImageUploader = () => {
-    // const { toast } = useToast() // Remove useToast hook
     const [preview, setPreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
@@ -25,29 +23,30 @@ const ImageUploader = () => {
     const generateAudio = async (text: string) => {
         try {
             setIsGeneratingAudio(true);
-              const response = await supabase.functions.invoke('generate-audio', {
-                 body: { text },
-             });
+            const response = await supabase.functions.invoke('generate-audio', {
+                body: { text },
+            });
 
-             if (response.error) {
-                 console.error("Error generating audio:", response.error);
+            if (response.error) {
+                console.error("Error generating audio:", response.error);
                 toast.error("Failed to generate audio for the word");
                 return;
             }
 
-              const blob = new Blob([response.data], { type: "audio/mpeg" });
-              const url = URL.createObjectURL(blob);
-               setAudioUrl(url);
+            // Handle the binary audio data
+            const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
+            const url = URL.createObjectURL(audioBlob);
+            setAudioUrl(url);
         } catch (error) {
             console.error("Error generating audio:", error);
             toast.error("Failed to generate audio for the word");
         } finally {
-             setIsGeneratingAudio(false);
+            setIsGeneratingAudio(false);
         }
     };
 
     const handlePlayAudio = async (word: string) => {
-        await generateAudio(word)
+        await generateAudio(word);
     };
 
     const handleFeedback = (type: 'like' | 'dislike') => {
@@ -59,7 +58,7 @@ const ImageUploader = () => {
                     onClick: () => console.log(type === 'like' ? 'Undo like' : 'Dismiss dislike'),
                 },
             }
-        )
+        );
     };
 
     const uploadAndAnalyzeImage = async (file: File) => {
@@ -82,8 +81,9 @@ const ImageUploader = () => {
                 .from('analyzed_images')
                 .getPublicUrl(fileName);
 
-            // Call analysis function with corrected body
-            console.log('Sending request with body:', { image: publicUrl });
+            console.log('Image uploaded, public URL:', publicUrl);
+
+            // Call analyze-image function
             const response = await supabase.functions.invoke('analyze-image', {
                 body: { image: publicUrl },
             });
@@ -182,7 +182,7 @@ const ImageUploader = () => {
                                 >
                                     {isGeneratingAudio ?
                                         <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-primary mx-auto"></div>
-                                        :   <Volume2 className="h-4 w-4"/>
+                                        : <Volume2 className="h-4 w-4"/>
                                     }
                                 </Button>
                             </CardHeader>
