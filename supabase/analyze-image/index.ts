@@ -14,9 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl } = await req.json();
+    const { image } = await req.json(); // Correctly access the image property
     
-    if (!imageUrl) {
+    if (!image) {
       console.error('No image URL provided in request body');
       return new Response(
         JSON.stringify({ error: 'No image URL provided' }),
@@ -27,7 +27,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Processing image URL:', imageUrl);
+    console.log('Processing image URL:', image);
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -57,7 +57,7 @@ serve(async (req) => {
             {
               type: "image_url",
               image_url: {
-                url: imageUrl,
+                url: image,
                 detail: "high"
               }
             }
@@ -83,7 +83,7 @@ serve(async (req) => {
     const { error: dbError } = await supabase
       .from('image_analysis')
       .insert({
-        image_path: imageUrl,
+        image_path: image,
         analysis_data: analysisData
       });
 

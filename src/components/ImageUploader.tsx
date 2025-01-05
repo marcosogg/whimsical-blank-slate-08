@@ -21,7 +21,7 @@ const ImageUploader = () => {
   const uploadAndAnalyzeImage = async (file: File) => {
     try {
       setIsAnalyzing(true);
-      
+
       // Upload to Supabase Storage
       const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -40,9 +40,10 @@ const ImageUploader = () => {
 
       console.log('Image uploaded, public URL:', publicUrl);
 
-      // Call analysis function
+      // Call analysis function with corrected body
+      console.log('Sending request with body:', { image: publicUrl });
       const response = await supabase.functions.invoke('analyze-image', {
-        body: { imageUrl: publicUrl },
+        body: { image: publicUrl },
       });
 
       console.log('Analysis response:', response);
