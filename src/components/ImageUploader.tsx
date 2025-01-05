@@ -26,27 +26,19 @@ const ImageUploader = () => {
     const generateAudio = async (text: string) => {
         try {
             setIsGeneratingAudio(true);
-            const response = await fetch("https://api.openai.com/v1/audio/speech", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    model: "tts-1",
-                    input: text,
-                    voice: "alloy",
-                }),
-            });
+              const response = await supabase.functions.invoke('generate-audio', {
+                 body: { text },
+             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`Failed to generate audio: ${error.message}`);
+             if (response.error) {
+                 console.error("Error generating audio:", response.error);
+                toast.error("Failed to generate audio for the word");
+                return;
             }
 
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            setAudioUrl(url);
+              const blob = new Blob([response.data], { type: "audio/mpeg" });
+              const url = URL.createObjectURL(blob);
+               setAudioUrl(url);
         } catch (error) {
             console.error("Error generating audio:", error);
             toast.error("Failed to generate audio for the word");
