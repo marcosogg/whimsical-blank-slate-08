@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -33,51 +32,22 @@ serve(async (req) => {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
-    const formats = ['mp3', 'opus'];
-    let audioData;
-    let currentFormat;
-    let error;
+    const response = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: "alloy",
+      input: text,
+      response_format: 'mp3',
+    });
 
-    // Try different audio formats
-    for (const format of formats) {
-      try {
-        console.log(`Attempting to generate audio in ${format} format`);
-        const response = await openai.audio.speech.create({
-          model: "tts-1",
-          voice: "alloy",
-          input: text,
-          response_format: format,
-        });
+    console.log('OpenAI API response received successfully');
+    const audioData = await response.arrayBuffer();
+    console.log(`Generated MP3 audio. Size: ${audioData.byteLength} bytes`);
 
-        console.log('OpenAI API response received successfully');
-        audioData = await response.arrayBuffer();
-        currentFormat = format;
-        console.log(`Successfully generated ${format} audio. Size: ${audioData.byteLength} bytes`);
-        break;
-      } catch (e) {
-        console.error(`Error generating ${format} audio:`, e);
-        error = e;
-      }
-    }
-
-    if (!audioData) {
-      throw error || new Error('Failed to generate audio in any format');
-    }
-
-    // Set content type based on the successful format
-    const contentType = currentFormat === 'mp3' ? 'audio/mpeg' : 'audio/opus';
-    
-    // Set all necessary headers for audio streaming
     const headers = {
       ...corsHeaders,
-      'Content-Type': contentType,
+      'Content-Type': 'audio/mpeg',
       'Content-Length': audioData.byteLength.toString(),
-      'Accept-Ranges': 'bytes',
-      'Cache-Control': 'no-cache',
     };
-
-    console.log('Sending response with headers:', headers);
-    console.log(`Final audio buffer size: ${audioData.byteLength} bytes`);
 
     return new Response(audioData, { headers });
 
@@ -89,7 +59,6 @@ serve(async (req) => {
       JSON.stringify({ 
         error: errorMessage,
         timestamp: new Date().toISOString(),
-        details: error instanceof Error ? error.stack : 'No stack trace available'
       }),
       {
         status: 500,
