@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import AudioPlayer from './AudioPlayer';
 
 interface AnalysisResult {
     word: string;
@@ -130,9 +131,12 @@ const ImageUploader = () => {
                             className="overflow-hidden transition-shadow duration-300 hover:shadow-lg bg-white"
                         >
                             <CardHeader className="border-b border-gray-100">
-                                <h3 className="text-2xl font-bold text-gray-800">
-                                    {result.word}
-                                </h3>
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-2xl font-bold text-gray-800">
+                                        {result.word}
+                                    </h3>
+                                    <AudioPlayer word={result.word} />
+                                </div>
                             </CardHeader>
                             <CardContent className="p-6 space-y-4">
                                 <p className="text-gray-700 leading-relaxed">
