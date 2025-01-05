@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from './ui/card';
 
 interface AnalysisResult {
   word: string;
@@ -29,6 +28,7 @@ const ImageUploader = () => {
         .upload(fileName, file);
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         throw new Error('Failed to upload image');
       }
 
@@ -37,12 +37,17 @@ const ImageUploader = () => {
         .from('analyzed_images')
         .getPublicUrl(fileName);
 
+      console.log('Image uploaded, public URL:', publicUrl);
+
       // Call analysis function
       const response = await supabase.functions.invoke('analyze-image', {
         body: { imageUrl: publicUrl },
       });
 
+      console.log('Analysis response:', response);
+
       if (response.error) {
+        console.error('Analysis error:', response.error);
         throw new Error('Failed to analyze image');
       }
 

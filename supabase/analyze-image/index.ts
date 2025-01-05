@@ -17,7 +17,14 @@ serve(async (req) => {
     const { imageUrl } = await req.json();
     
     if (!imageUrl) {
-      throw new Error('No image URL provided');
+      console.error('No image URL provided in request body');
+      return new Response(
+        JSON.stringify({ error: 'No image URL provided' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     console.log('Processing image URL:', imageUrl);
@@ -32,6 +39,7 @@ serve(async (req) => {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
+    console.log('Calling OpenAI API...');
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
