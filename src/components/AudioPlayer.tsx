@@ -6,11 +6,13 @@ import { toast } from 'sonner';
 interface AudioPlayerProps {
   word: string;
   onGenerateAudio: (word: string) => Promise<ArrayBuffer>;
+  debug?: boolean;  // Added debug prop as optional
 }
 
-export const AudioPlayer = ({ word, onGenerateAudio }: AudioPlayerProps) => {
+export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioInfo, setAudioInfo] = useState<{ size?: number; type?: string }>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handlePlay = async () => {
@@ -27,6 +29,10 @@ export const AudioPlayer = ({ word, onGenerateAudio }: AudioPlayerProps) => {
         
         if (audioRef.current) {
           audioRef.current.src = url;
+          setAudioInfo({
+            size: audioData.byteLength,
+            type: 'audio/mpeg'
+          });
         }
       }
 
@@ -93,6 +99,12 @@ export const AudioPlayer = ({ word, onGenerateAudio }: AudioPlayerProps) => {
         )}
       </Button>
       <audio ref={audioRef} />
+      {debug && audioInfo.size && (
+        <div className="text-xs text-gray-500">
+          <p>Size: {(audioInfo.size / 1024).toFixed(2)} KB</p>
+          <p>Type: {audioInfo.type}</p>
+        </div>
+      )}
     </div>
   );
 };
