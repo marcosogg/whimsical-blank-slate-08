@@ -4,7 +4,6 @@ import { OpenAI } from "https://deno.land/x/openai@v4.24.0/mod.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 serve(async (req) => {
@@ -52,22 +51,19 @@ serve(async (req) => {
 
     console.log(`Successfully generated MP3 audio. Size: ${audioData.byteLength} bytes`);
 
-    // Set proper headers for audio streaming
-    const headers = {
-      ...corsHeaders,
-      'Content-Type': 'audio/mpeg',
-      'Content-Length': audioData.byteLength.toString(),
-    };
-
-    return new Response(audioData, { headers });
+    return new Response(audioData, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioData.byteLength.toString(),
+      }
+    });
 
   } catch (error) {
     console.error('Error in generate-audio function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
+        error: error.message || 'Failed to generate audio',
         timestamp: new Date().toISOString(),
       }),
       {
