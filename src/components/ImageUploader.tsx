@@ -6,7 +6,6 @@ import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { AudioPlayer } from './AudioPlayer';
 
 interface AnalysisResult {
     word: string;
@@ -18,22 +17,6 @@ const ImageUploader = () => {
     const [preview, setPreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
-    const [isDebugMode] = useState(false);
-
-    const generateAudio = async (text: string): Promise<ArrayBuffer> => {
-        console.log(`Requesting audio generation for: ${text}`);
-        const response = await supabase.functions.invoke('generate-audio', {
-            body: { text },
-        });
-
-        if (response.error) {
-            console.error("Error generating audio:", response.error);
-            throw new Error(response.error.message || "Failed to generate audio");
-        }
-
-        console.log('Audio generation successful');
-        return response.data;
-    };
 
     const handleFeedback = (type: 'like' | 'dislike') => {
         toast(
@@ -155,13 +138,8 @@ const ImageUploader = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                     {analysisResults.map((result, index) => (
                         <Card key={index} className="overflow-hidden">
-                            <CardHeader className="flex justify-between items-center">
+                            <CardHeader>
                                 <h3 className="text-xl font-bold p-6">{result.word}</h3>
-                                <AudioPlayer 
-                                    word={result.word} 
-                                    onGenerateAudio={generateAudio}
-                                    debug={isDebugMode}
-                                />
                             </CardHeader>
                             <CardContent className="p-6 relative">
                                 <p className="text-gray-600 mb-4">

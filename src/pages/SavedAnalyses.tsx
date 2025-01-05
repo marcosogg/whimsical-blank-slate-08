@@ -1,28 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from 'sonner';
-import { AudioPlayer } from "@/components/AudioPlayer";
-import { useState } from "react";
 
 const SavedAnalyses = () => {
-    const [isDebugMode] = useState(true); // Set to true for debugging
-
-    const generateAudio = async (text: string): Promise<ArrayBuffer> => {
-        console.log(`Requesting audio generation for: ${text}`);
-        const response = await supabase.functions.invoke('generate-audio', {
-            body: { text },
-        });
-
-        if (response.error) {
-            console.error("Error generating audio:", response.error);
-            throw new Error(response.error.message || "Failed to generate audio");
-        }
-
-        console.log('Audio generation successful');
-        return response.data;
-    };
-
     const { data: analyses, isLoading } = useQuery({
         queryKey: ['word-analyses'],
         queryFn: async () => {
@@ -54,13 +34,8 @@ const SavedAnalyses = () => {
                 <div className="grid gap-6 md:grid-cols-2">
                     {analyses?.map((analysis) => (
                         <Card key={analysis.id} className="overflow-hidden transition-all duration-200 hover:shadow-lg">
-                            <CardHeader className="flex justify-between items-center">
+                            <CardHeader>
                                 <h3 className="text-xl font-bold p-6">{analysis.word}</h3>
-                                <AudioPlayer 
-                                    word={analysis.word} 
-                                    onGenerateAudio={generateAudio}
-                                    debug={isDebugMode}
-                                />
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
