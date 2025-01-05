@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -20,7 +19,7 @@ const TopNav = () => {
                     <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                         ImageToDict
                     </div>
-                    <div className="hidden md:flex items-center gap-6">
+                    <div className="flex items-center gap-6">
                         <Link 
                             to="/" 
                             className="text-gray-600 hover:text-primary transition-colors"
