@@ -45,7 +45,7 @@ serve(async (req) => {
       messages: [
         {
           role: "system",
-          content: "You are a visual dictionary assistant. Analyze the image and identify 3-4 key words or concepts. For each word, provide its definition and a sample sentence. Format your response as a JSON array of objects, each containing 'word', 'definition', and 'sampleSentence' fields."
+           content: "You are a visual dictionary assistant for English learners. Analyze the image and identify 3-4 key words or concepts. For each word, provide its definition using simple, basic English. Also, provide a sample sentence using very common scenarios and simple vocabulary. Format your response as a JSON array of objects, each containing 'word', 'definition', and 'sampleSentence' fields."
         },
         {
           role: "user",
@@ -70,14 +70,16 @@ serve(async (req) => {
     const content = completion.choices[0].message.content;
     console.log('Raw GPT response:', content);
 
+
     let analysisData;
     try {
-      analysisData = JSON.parse(content.replace(/```json\s?|\s?```/g, '').trim());
-      console.log('Parsed analysis data:', analysisData);
+        analysisData = JSON.parse(content.replace(/```json\s?|\s?```/g, '').trim());
+        console.log('Parsed analysis data:', analysisData);
     } catch (parseError) {
-      console.error('Failed to parse GPT response:', parseError);
-      throw new Error('Failed to parse analysis results');
+        console.error('Failed to parse GPT response:', parseError);
+        throw new Error('Failed to parse analysis results');
     }
+    
 
     // Store results in the database
     const { error: dbError } = await supabase
