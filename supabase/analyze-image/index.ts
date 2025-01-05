@@ -41,7 +41,7 @@ serve(async (req) => {
 
     console.log('Calling OpenAI API...');
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4-vision-preview", // Fixed model name
       messages: [
         {
           role: "system",
