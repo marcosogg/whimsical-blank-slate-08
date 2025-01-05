@@ -127,14 +127,10 @@ const ImageUploader = () => {
                     {analysisResults.map((result, index) => (
                         <Card 
                             key={index} 
-                            className="overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300 animate-fade-up"
-                            style={{
-                                animationDelay: `${index * 150}ms`,
-                                backgroundColor: index % 2 === 0 ? '#F2FCE2' : '#D3E4FD'
-                            }}
+                            className="overflow-hidden transition-shadow duration-300 hover:shadow-lg bg-white"
                         >
-                            <CardHeader className="bg-white/50 backdrop-blur-sm border-b border-gray-100">
-                                <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            <CardHeader className="border-b border-gray-100">
+                                <h3 className="text-2xl font-bold text-gray-800">
                                     {result.word}
                                 </h3>
                             </CardHeader>
