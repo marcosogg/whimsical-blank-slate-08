@@ -1,1 +1,14 @@
 project_id = "ibzenqijdjpjcxrdhmvx"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[[functions]]
+name = "analyze-image"
+verify_jwt = false
+
+[[functions]]
+name = "generate-audio"
+verify_jwt = false
