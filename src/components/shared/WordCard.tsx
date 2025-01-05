@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AudioPlayer from '@/components/AudioPlayer';
+import { useNavigate } from 'react-router-dom';
 
 interface WordCardProps {
     word: string;
@@ -10,14 +11,23 @@ interface WordCardProps {
 }
 
 const WordCard = ({ word, definition, sampleSentence, showAudio = true }: WordCardProps) => {
+    const navigate = useNavigate();
+
     return (
-        <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg bg-white">
+        <Card 
+            className="overflow-hidden transition-shadow duration-300 hover:shadow-lg bg-white cursor-pointer"
+            onClick={() => navigate(`/word/${word}`)}
+        >
             <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                     <h3 className="text-2xl font-bold text-gray-800">
                         {word}
                     </h3>
-                    {showAudio && <AudioPlayer word={word} />}
+                    {showAudio && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                            <AudioPlayer word={word} />
+                        </div>
+                    )}
                 </div>
             </CardHeader>
             <CardContent className="p-6 space-y-4">

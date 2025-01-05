@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
 import MyDictionary from "./pages/MyDictionary";
+import WordPage from "./pages/WordPage";
 import TopNav from "./components/TopNav";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,14 @@ const App = () => (
                         element={
                             <ProtectedRoute>
                                 <MyDictionary />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/word/:word"
+                        element={
+                            <ProtectedRoute>
+                                <WordPage />
                             </ProtectedRoute>
                         }
                     />
