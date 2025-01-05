@@ -2,11 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import AudioPlayer from './AudioPlayer';
+import WordCard from './shared/WordCard';
 
 interface AnalysisResult {
     word: string;
@@ -126,27 +124,12 @@ const ImageUploader = () => {
             {analysisResults.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {analysisResults.map((result, index) => (
-                        <Card 
-                            key={index} 
-                            className="overflow-hidden transition-shadow duration-300 hover:shadow-lg bg-white"
-                        >
-                            <CardHeader className="border-b border-gray-100">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-2xl font-bold text-gray-800">
-                                        {result.word}
-                                    </h3>
-                                    <AudioPlayer word={result.word} />
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-4">
-                                <p className="text-gray-700 leading-relaxed">
-                                    {result.definition}
-                                </p>
-                                <blockquote className="border-l-4 border-primary/20 pl-4 italic text-sm text-gray-600">
-                                    "{result.sampleSentence}"
-                                </blockquote>
-                            </CardContent>
-                        </Card>
+                        <WordCard
+                            key={index}
+                            word={result.word}
+                            definition={result.definition}
+                            sampleSentence={result.sampleSentence}
+                        />
                     ))}
                 </div>
             )}

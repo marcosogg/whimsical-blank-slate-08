@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import WordCard from "@/components/shared/WordCard";
 import { supabase } from "@/integrations/supabase/client";
 
 const SavedAnalyses = () => {
@@ -33,26 +33,13 @@ const SavedAnalyses = () => {
 
                 <div className="grid gap-6 md:grid-cols-2">
                     {analyses?.map((analysis) => (
-                        <Card 
-                            key={analysis.id} 
-                            className="overflow-hidden transition-shadow duration-300 hover:shadow-lg bg-white"
-                        >
-                            <CardHeader className="border-b border-gray-100">
-                                <h3 className="text-2xl font-bold text-gray-800">
-                                    {analysis.word}
-                                </h3>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-4">
-                                <div>
-                                    <h4 className="text-sm font-medium text-gray-600 mb-2">Definition</h4>
-                                    <p className="text-gray-700">{analysis.definition}</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-medium text-gray-600 mb-2">Example</h4>
-                                    <p className="text-gray-700 italic">"{analysis.sample_sentence}"</p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <WordCard
+                            key={analysis.id}
+                            word={analysis.word}
+                            definition={analysis.definition}
+                            sampleSentence={analysis.sample_sentence}
+                            showAudio={true}
+                        />
                     ))}
                 </div>
             </div>
