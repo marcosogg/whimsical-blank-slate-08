@@ -1,12 +1,13 @@
 // Inside ImageUploader.tsx
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Image as ImageIcon, Volume2 } from 'lucide-react'; //Added Volume2 icon
+import { Upload, Image as ImageIcon, Volume2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader } from '@/components/ui/card'; // Added CardHeader
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useToast } from "@/hooks/use-toast"; // added useToast hook
 
 interface AnalysisResult {
     word: string;
@@ -15,6 +16,7 @@ interface AnalysisResult {
 }
 
 const ImageUploader = () => {
+    const { toast } = useToast() // added toast state
     const [preview, setPreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
@@ -27,7 +29,7 @@ const ImageUploader = () => {
             const response = await fetch("https://api.openai.com/v1/audio/speech", {
                 method: "POST",
                 headers: {
-                  Authorization: `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+                    Authorization: `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
@@ -49,7 +51,7 @@ const ImageUploader = () => {
             console.error("Error generating audio:", error);
             toast.error("Failed to generate audio for the word");
         } finally {
-            setIsGeneratingAudio(false);
+             setIsGeneratingAudio(false);
         }
     };
 
@@ -57,6 +59,14 @@ const ImageUploader = () => {
     const handlePlayAudio = async (word: string) => {
         await generateAudio(word)
     };
+
+  const handleFeedback = (type: 'like' | 'dislike') => {
+    toast({
+      title: `You ${type === 'like' ? 'liked' : 'disliked'} this word`,
+      duration: 3000,
+    });
+  };
+
 
     const uploadAndAnalyzeImage = async (file: File) => {
         try {
@@ -173,7 +183,7 @@ const ImageUploader = () => {
                     <Card key={index} className="overflow-hidden">
                         <CardHeader className="flex justify-between items-center">
                             <h3 className="text-xl font-bold p-6">{result.word}</h3>
-                                <Button
+                            <Button
                                     onClick={() => handlePlayAudio(result.word)}
                                     variant='ghost'
                                     size='icon'
@@ -184,16 +194,31 @@ const ImageUploader = () => {
                                   :   <Volume2 className="h-4 w-4"/>
                                 }
                                 </Button>
-                            
                         </CardHeader>
-                         <CardContent className="p-6">
+                        <CardContent className="p-6 relative">
                             <p className="text-gray-600 mb-4">
                                 {result.definition}
                             </p>
                             <p className="text-sm text-gray-500 italic">
                                 "{result.sampleSentence}"
                             </p>
-                           {audioUrl && <audio src={audioUrl} controls />}
+                             {audioUrl && <audio src={audioUrl} controls />}
+                            <div className="absolute right-4 bottom-4 flex gap-2">
+                                <Button
+                                    onClick={() => handleFeedback('like')}
+                                    variant="ghost"
+                                    size="icon"
+                                >
+                                    <ThumbsUp className="h-4 w-4" />
+                                </Button>
+                                 <Button
+                                    onClick={() => handleFeedback('dislike')}
+                                    variant="ghost"
+                                    size="icon"
+                                >
+                                    <ThumbsDown className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 ))}
