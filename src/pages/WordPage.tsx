@@ -31,11 +31,17 @@ interface WordDefinition {
   sourceUrls?: string[];
 }
 
+interface DictionaryError {
+  title: string;
+  message: string;
+  resolution: string;
+}
+
 const WordPage = () => {
   const { word } = useParams();
   const navigate = useNavigate();
 
-  const { data, isLoading, error } = useQuery<WordDefinition[]>({
+  const { data, isLoading, error } = useQuery<WordDefinition[], Error>({
     queryKey: ['word-details', word],
     queryFn: async () => {
       if (!word) throw new Error('No word provided');
@@ -44,55 +50,59 @@ const WordPage = () => {
         `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
       );
 
-      // Check for HTTP error
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch word details');
-      }
-
       const data = await response.json();
-        // Check if word is not found
-        if (data && data.title === "No Definitions Found") {
-            throw new Error(data.message || "No definitions found for this word");
-        }
 
-      // Check if data is in the expected format (an array with at least one element)
-      if (!Array.isArray(data) || data.length === 0) {
-        throw new Error('Invalid data format received from the API');
+      // Handle the specific "No Definitions Found" error from the API
+      if (!response.ok) {
+        const errorData = data as DictionaryError;
+        throw new Error(errorData.message || 'No definitions found for this word');
       }
-      
+
       return data;
     },
+    retry: false, // Don't retry for 404s
   });
+
+  // Common layout wrapper
+  const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div className="max-w-4xl mx-auto p-6">
+      <Button
+        variant="ghost"
+        onClick={() => navigate(-1)}
+        className="mb-6"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
+      {children}
+    </div>
+  );
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
+      <PageWrapper>
+        <Card>
+          <CardContent className="p-6 space-y-6">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </CardContent>
+        </Card>
+      </PageWrapper>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <Alert>
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : 'An unexpected error occurred.'}
+      <PageWrapper>
+        <Alert variant="destructive">
+          <AlertTitle>Word Not Found</AlertTitle>
+          <AlertDescription className="space-y-4">
+            <p>{error?.message || 'No definitions found for this word.'}</p>
+            <p>Try searching for another word or check your spelling.</p>
           </AlertDescription>
         </Alert>
-      </div>
+      </PageWrapper>
     );
   }
 
@@ -114,16 +124,7 @@ const WordPage = () => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Button
-        variant="ghost"
-        onClick={() => navigate(-1)}
-        className="mb-6"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back
-      </Button>
-
+    <PageWrapper>
       <Card>
         <CardHeader>
           <WordPhonetics word={wordData.word} phonetics={wordData.phonetics} />
@@ -147,7 +148,7 @@ const WordPage = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageWrapper>
   );
 };
 
