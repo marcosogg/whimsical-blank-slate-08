@@ -123,19 +123,28 @@ const ImageUploader = () => {
                 </div>
             )}
             {analysisResults.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {analysisResults.map((result, index) => (
-                        <Card key={index} className="overflow-hidden">
-                            <CardHeader>
-                                <h3 className="text-xl font-bold p-6">{result.word}</h3>
+                        <Card 
+                            key={index} 
+                            className="overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300 animate-fade-up"
+                            style={{
+                                animationDelay: `${index * 150}ms`,
+                                backgroundColor: index % 2 === 0 ? '#F2FCE2' : '#D3E4FD'
+                            }}
+                        >
+                            <CardHeader className="bg-white/50 backdrop-blur-sm border-b border-gray-100">
+                                <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                                    {result.word}
+                                </h3>
                             </CardHeader>
-                            <CardContent className="p-6">
-                                <p className="text-gray-600 mb-4">
+                            <CardContent className="p-6 space-y-4">
+                                <p className="text-gray-700 leading-relaxed">
                                     {result.definition}
                                 </p>
-                                <p className="text-sm text-gray-500 italic">
+                                <blockquote className="border-l-4 border-primary/20 pl-4 italic text-sm text-gray-600">
                                     "{result.sampleSentence}"
-                                </p>
+                                </blockquote>
                             </CardContent>
                         </Card>
                     ))}
