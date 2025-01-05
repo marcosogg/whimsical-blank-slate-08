@@ -33,35 +33,57 @@ serve(async (req) => {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
-    const response = await openai.audio.speech.create({
-      model: "tts-1",
-      voice: "alloy",
-      input: text,
-      response_format: "mp3",
-    });
+    const formats = ['mp3', 'opus'];
+    let audioData;
+    let currentFormat;
+    let error;
 
-    console.log('OpenAI API response received successfully');
+    // Try different audio formats
+    for (const format of formats) {
+      try {
+        console.log(`Attempting to generate audio in ${format} format`);
+        const response = await openai.audio.speech.create({
+          model: "tts-1",
+          voice: "alloy",
+          input: text,
+          response_format: format,
+        });
 
-    // Convert the response to ArrayBuffer
-    const audioData = await response.arrayBuffer();
-    console.log(`Audio data received. Size: ${audioData.byteLength} bytes`);
+        console.log('OpenAI API response received successfully');
+        audioData = await response.arrayBuffer();
+        currentFormat = format;
+        console.log(`Successfully generated ${format} audio. Size: ${audioData.byteLength} bytes`);
+        break;
+      } catch (e) {
+        console.error(`Error generating ${format} audio:`, e);
+        error = e;
+      }
+    }
 
+    if (!audioData) {
+      throw error || new Error('Failed to generate audio in any format');
+    }
+
+    // Set content type based on the successful format
+    const contentType = currentFormat === 'mp3' ? 'audio/mpeg' : 'audio/opus';
+    
     // Set all necessary headers for audio streaming
     const headers = {
       ...corsHeaders,
-      'Content-Type': 'audio/mpeg',
+      'Content-Type': contentType,
       'Content-Length': audioData.byteLength.toString(),
       'Accept-Ranges': 'bytes',
+      'Cache-Control': 'no-cache',
     };
 
     console.log('Sending response with headers:', headers);
+    console.log(`Final audio buffer size: ${audioData.byteLength} bytes`);
 
     return new Response(audioData, { headers });
 
   } catch (error) {
     console.error('Error in generate-audio function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Detailed error:', errorMessage);
     
     return new Response(
       JSON.stringify({ 
