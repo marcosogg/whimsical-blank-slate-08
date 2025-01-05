@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Image as ImageIcon, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Upload, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
@@ -17,18 +17,6 @@ const ImageUploader = () => {
     const [preview, setPreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
-
-    const handleFeedback = (type: 'like' | 'dislike') => {
-        toast(
-            type === 'like' ? 'Thank you for your feedback!' : 'We appreciate your feedback and will use it to improve our service.',
-            {
-                action: {
-                    label: type === 'like' ? 'Undo' : 'Dismiss',
-                    onClick: () => console.log(type === 'like' ? 'Undo like' : 'Dismiss dislike'),
-                },
-            }
-        );
-    };
 
     const uploadAndAnalyzeImage = async (file: File) => {
         try {
@@ -141,29 +129,13 @@ const ImageUploader = () => {
                             <CardHeader>
                                 <h3 className="text-xl font-bold p-6">{result.word}</h3>
                             </CardHeader>
-                            <CardContent className="p-6 relative">
+                            <CardContent className="p-6">
                                 <p className="text-gray-600 mb-4">
                                     {result.definition}
                                 </p>
                                 <p className="text-sm text-gray-500 italic">
                                     "{result.sampleSentence}"
                                 </p>
-                                <div className="absolute right-4 bottom-4 flex gap-2">
-                                    <Button
-                                        onClick={() => handleFeedback('like')}
-                                        variant="ghost"
-                                        size="icon"
-                                    >
-                                        <ThumbsUp className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleFeedback('dislike')}
-                                        variant="ghost"
-                                        size="icon"
-                                    >
-                                        <ThumbsDown className="h-4 w-4" />
-                                    </Button>
-                                </div>
                             </CardContent>
                         </Card>
                     ))}
