@@ -19,7 +19,7 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
     try {
       if (!audioRef.current?.src) {
         setIsLoading(true);
-        console.log(`Generating audio for word: ${word}`);
+        console.log(`Requesting audio generation for: ${word}`);
         
         const audioData = await onGenerateAudio(word);
         if (!audioData || !(audioData instanceof ArrayBuffer)) {
@@ -27,19 +27,21 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
           throw new Error('Invalid audio data received');
         }
         
-        console.log(`Received audio data. Size: ${audioData.byteLength} bytes`);
+        console.log(`Received audio data. Type: ${Object.prototype.toString.call(audioData)}`);
+        console.log(`Audio data size: ${audioData.byteLength} bytes`);
         
         const blob = new Blob([audioData], { type: 'audio/mpeg' });
         console.log('Created audio blob:', {
           size: blob.size,
-          type: blob.type
+          type: blob.type,
+          valid: blob.size > 0
         });
         
         const url = URL.createObjectURL(blob);
+        console.log('Created object URL:', url);
         
         if (audioRef.current) {
           audioRef.current.src = url;
-          console.log('Set audio source URL:', url);
           setAudioInfo({
             size: audioData.byteLength,
             type: 'audio/mpeg'

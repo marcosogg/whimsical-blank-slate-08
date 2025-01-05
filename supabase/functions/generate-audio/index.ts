@@ -50,16 +50,17 @@ serve(async (req) => {
       throw new Error('Failed to generate audio: Empty audio data received');
     }
 
-    console.log(`Successfully generated MP3 audio. Size: ${audioData.byteLength} bytes`);
+    console.log(`Generated MP3 audio. Size: ${audioData.byteLength} bytes`);
+    console.log('Audio data type:', Object.prototype.toString.call(audioData));
 
-    // Set proper headers for audio streaming
-    const headers = {
-      ...corsHeaders,
-      'Content-Type': 'audio/mpeg',
-      'Content-Length': audioData.byteLength.toString(),
-    };
-
-    return new Response(audioData, { headers });
+    // Return raw audio data with correct headers
+    return new Response(audioData, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioData.byteLength.toString(),
+      }
+    });
 
   } catch (error) {
     console.error('Error in generate-audio function:', error);
