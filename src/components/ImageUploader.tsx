@@ -6,24 +6,24 @@ import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card'; // Added CardHeader
 
 interface AnalysisResult {
-  word: string;
-  definition: string;
-  sampleSentence: string;
+    word: string;
+    definition: string;
+    sampleSentence: string;
 }
-
 
 const ImageUploader = () => {
     const [preview, setPreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
-
+    const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
     const generateAudio = async (text: string) => {
         try {
+            setIsGeneratingAudio(true);
             const response = await fetch("https://api.openai.com/v1/audio/speech", {
                 method: "POST",
                 headers: {
@@ -40,7 +40,7 @@ const ImageUploader = () => {
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(`Failed to generate audio: ${error.message}`);
-              }
+            }
 
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
@@ -48,6 +48,8 @@ const ImageUploader = () => {
         } catch (error) {
             console.error("Error generating audio:", error);
             toast.error("Failed to generate audio for the word");
+        } finally {
+            setIsGeneratingAudio(false);
         }
     };
 
@@ -55,7 +57,6 @@ const ImageUploader = () => {
     const handlePlayAudio = async (word: string) => {
         await generateAudio(word)
     };
-
 
     const uploadAndAnalyzeImage = async (file: File) => {
         try {
@@ -170,16 +171,22 @@ const ImageUploader = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                 {analysisResults.map((result, index) => (
                     <Card key={index} className="overflow-hidden">
-                        <CardContent className="p-6">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-xl font-bold">{result.word}</h3>
+                        <CardHeader className="flex justify-between items-center">
+                            <h3 className="text-xl font-bold p-6">{result.word}</h3>
                                 <Button
                                     onClick={() => handlePlayAudio(result.word)}
                                     variant='ghost'
-                                    size='icon'>
-                                    <Volume2 className="h-4 w-4"/>
+                                    size='icon'
+                                    disabled={isGeneratingAudio}
+                                >
+                                {isGeneratingAudio ?
+                                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-primary mx-auto"></div>
+                                  :   <Volume2 className="h-4 w-4"/>
+                                }
                                 </Button>
-                            </div>
+                            
+                        </CardHeader>
+                         <CardContent className="p-6">
                             <p className="text-gray-600 mb-4">
                                 {result.definition}
                             </p>
