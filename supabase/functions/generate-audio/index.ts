@@ -44,22 +44,44 @@ serve(async (req) => {
       throw new Error('Failed to generate audio: No response from OpenAI');
     }
 
+    console.log('[generate-audio] Received response from OpenAI:', {
+      type: response.constructor.name,
+      headers: Object.fromEntries(response.headers?.entries() || []),
+    });
+
     const audioData = await response.arrayBuffer();
     
     if (!audioData || audioData.byteLength === 0) {
       throw new Error('Failed to generate audio: Empty audio data received');
     }
 
-    console.log(`[generate-audio] Generated audio data. Size: ${audioData.byteLength} bytes`);
-    console.log('[generate-audio] Audio data type:', Object.prototype.toString.call(audioData));
-
-    return new Response(audioData, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': audioData.byteLength.toString(),
-      }
+    console.log(`[generate-audio] Audio data details:`, {
+      size: audioData.byteLength,
+      type: Object.prototype.toString.call(audioData),
+      isArrayBuffer: audioData instanceof ArrayBuffer,
     });
+
+    // Set response headers for audio streaming
+    const responseHeaders = {
+      ...corsHeaders,
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioData.byteLength.toString(),
+      'Content-Disposition': 'inline; filename="audio.mp3"',
+      'Cache-Control': 'no-cache',
+    };
+
+    console.log('[generate-audio] Sending response with headers:', responseHeaders);
+
+    // Create a ReadableStream from the ArrayBuffer
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array(audioData));
+        controller.close();
+      },
+    });
+
+    // Return the stream directly
+    return new Response(stream, { headers: responseHeaders });
 
   } catch (error) {
     console.error('[generate-audio] Error:', error);
