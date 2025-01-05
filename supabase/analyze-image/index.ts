@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { image } = await req.json(); // Correctly access the image property
+    const { image } = await req.json();
     
     if (!image) {
       console.error('No image URL provided in request body');
@@ -41,7 +41,7 @@ serve(async (req) => {
 
     console.log('Calling OpenAI API...');
     const completion = await openai.chat.completions.create({
-      model: "gpt-4-vision-preview", // Fixed model name
+      model: "gpt-4-vision-preview",
       messages: [
         {
           role: "system",
