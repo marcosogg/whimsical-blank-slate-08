@@ -1,32 +1,30 @@
-import { Toaster as Sonner } from "@/components/ui/sonner"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { supabase } from "@/integrations/supabase/client"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/AppSidebar"
-import Index from "./pages/Index"
-import AuthPage from "./pages/Auth"
-import SavedAnalyses from "./pages/SavedAnalyses"
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import Index from "./pages/Index";
+import AuthPage from "./pages/Auth";
+import SavedAnalyses from "./pages/SavedAnalyses";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     useEffect(() => {
         supabase.auth.onAuthStateChange((event, session) => {
-            setIsAuthenticated(!!session)
-        })
-    }, [])
+            setIsAuthenticated(!!session);
+        });
+    }, []);
 
     if (isAuthenticated === null) {
-        return <div>Loading...</div>
+        return <div>Loading...</div>;
     }
 
-    return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />
-}
+    return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+};
 
 const App = () => (
     <QueryClientProvider client={queryClient}>
@@ -39,15 +37,7 @@ const App = () => (
                         path="/"
                         element={
                             <ProtectedRoute>
-                                <SidebarProvider>
-                                    <div className="min-h-screen flex w-full bg-background">
-                                        <AppSidebar />
-                                        <main className="flex-1 p-4 ml-[3rem] md:ml-[16rem]">
-                                            <SidebarTrigger className="m-4" />
-                                            <Index />
-                                        </main>
-                                    </div>
-                                </SidebarProvider>
+                                <Index />
                             </ProtectedRoute>
                         }
                     />
@@ -55,15 +45,7 @@ const App = () => (
                         path="/saved-analyses"
                         element={
                             <ProtectedRoute>
-                                <SidebarProvider>
-                                    <div className="min-h-screen flex w-full bg-background">
-                                        <AppSidebar />
-                                        <main className="flex-1 p-4 ml-[3rem] md:ml-[16rem]">
-                                            <SidebarTrigger className="m-4" />
-                                            <SavedAnalyses />
-                                        </main>
-                                    </div>
-                                </SidebarProvider>
+                                <SavedAnalyses />
                             </ProtectedRoute>
                         }
                     />
@@ -71,6 +53,6 @@ const App = () => (
             </BrowserRouter>
         </TooltipProvider>
     </QueryClientProvider>
-)
+);
 
-export default App
+export default App;
