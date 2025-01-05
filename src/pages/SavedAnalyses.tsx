@@ -1,42 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Volume2 } from "lucide-react";
-import React, {useState} from "react";
 import { toast } from 'sonner';
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 const SavedAnalyses = () => {
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+    const generateAudio = async (text: string): Promise<ArrayBuffer> => {
+        console.log(`Requesting audio generation for: ${text}`);
+        const response = await supabase.functions.invoke('generate-audio', {
+            body: { text },
+        });
 
-    const generateAudio = async (text: string) => {
-        try {
-            setIsGeneratingAudio(true);
-              const response = await supabase.functions.invoke('generate-audio', {
-                 body: { text },
-             });
-
-             if (response.error) {
-                 console.error("Error generating audio:", response.error);
-                toast.error("Failed to generate audio for the word");
-                return;
-            }
-
-              const blob = new Blob([response.data], { type: "audio/mpeg" });
-              const url = URL.createObjectURL(blob);
-               setAudioUrl(url);
-        } catch (error) {
-            console.error("Error generating audio:", error);
-            toast.error("Failed to generate audio for the word");
-        } finally {
-             setIsGeneratingAudio(false);
+        if (response.error) {
+            console.error("Error generating audio:", response.error);
+            throw new Error(response.error.message || "Failed to generate audio");
         }
-    };
 
-    const handlePlayAudio = async (word: string) => {
-        await generateAudio(word)
+        console.log('Audio generation successful');
+        return response.data;
     };
 
     const { data: analyses, isLoading } = useQuery({
@@ -70,19 +51,13 @@ const SavedAnalyses = () => {
                 <div className="grid gap-6 md:grid-cols-2">
                     {analyses?.map((analysis) => (
                         <Card key={analysis.id} className="overflow-hidden transition-all duration-200 hover:shadow-lg">
-                             <CardHeader className="flex justify-between items-center">
+                            <CardHeader className="flex justify-between items-center">
                                 <h3 className="text-xl font-bold p-6">{analysis.word}</h3>
-                                <Button
-                                    onClick={() => handlePlayAudio(analysis.word)}
-                                    variant='ghost'
-                                    size='icon'
-                                    disabled={isGeneratingAudio}
-                                >
-                                {isGeneratingAudio ?
-                                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-primary mx-auto"></div>
-                                  :   <Volume2 className="h-4 w-4"/>
-                                }
-                                </Button>
+                                <AudioPlayer 
+                                    word={analysis.word} 
+                                    onGenerateAudio={generateAudio}
+                                    debug={false}
+                                />
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
@@ -93,7 +68,6 @@ const SavedAnalyses = () => {
                                     <h4 className="text-sm font-medium text-muted-foreground mb-2">Example</h4>
                                     <p className="text-sm italic">{analysis.sample_sentence}</p>
                                 </div>
-                                 {audioUrl && <audio src={audioUrl} controls />}
                             </CardContent>
                         </Card>
                     ))}

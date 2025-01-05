@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Image as ImageIcon, Volume2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Upload, Image as ImageIcon, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { AudioPlayer } from './AudioPlayer';
 
 interface AnalysisResult {
     word: string;
@@ -17,36 +18,21 @@ const ImageUploader = () => {
     const [preview, setPreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+    const [isDebugMode] = useState(false);
 
-    const generateAudio = async (text: string) => {
-        try {
-            setIsGeneratingAudio(true);
-            const response = await supabase.functions.invoke('generate-audio', {
-                body: { text },
-            });
+    const generateAudio = async (text: string): Promise<ArrayBuffer> => {
+        console.log(`Requesting audio generation for: ${text}`);
+        const response = await supabase.functions.invoke('generate-audio', {
+            body: { text },
+        });
 
-            if (response.error) {
-                console.error("Error generating audio:", response.error);
-                toast.error("Failed to generate audio for the word");
-                return;
-            }
-
-            // Handle the binary audio data
-            const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
-            const url = URL.createObjectURL(audioBlob);
-            setAudioUrl(url);
-        } catch (error) {
-            console.error("Error generating audio:", error);
-            toast.error("Failed to generate audio for the word");
-        } finally {
-            setIsGeneratingAudio(false);
+        if (response.error) {
+            console.error("Error generating audio:", response.error);
+            throw new Error(response.error.message || "Failed to generate audio");
         }
-    };
 
-    const handlePlayAudio = async (word: string) => {
-        await generateAudio(word);
+        console.log('Audio generation successful');
+        return response.data;
     };
 
     const handleFeedback = (type: 'like' | 'dislike') => {
@@ -65,7 +51,6 @@ const ImageUploader = () => {
         try {
             setIsAnalyzing(true);
 
-            // Upload to Supabase Storage
             const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('analyzed_images')
@@ -76,14 +61,12 @@ const ImageUploader = () => {
                 throw new Error('Failed to upload image');
             }
 
-            // Get public URL
             const { data: { publicUrl } } = supabase.storage
                 .from('analyzed_images')
                 .getPublicUrl(fileName);
 
             console.log('Image uploaded, public URL:', publicUrl);
 
-            // Call analyze-image function
             const response = await supabase.functions.invoke('analyze-image', {
                 body: { image: publicUrl },
             });
@@ -174,17 +157,11 @@ const ImageUploader = () => {
                         <Card key={index} className="overflow-hidden">
                             <CardHeader className="flex justify-between items-center">
                                 <h3 className="text-xl font-bold p-6">{result.word}</h3>
-                                <Button
-                                    onClick={() => handlePlayAudio(result.word)}
-                                    variant='ghost'
-                                    size='icon'
-                                    disabled={isGeneratingAudio}
-                                >
-                                    {isGeneratingAudio ?
-                                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-primary mx-auto"></div>
-                                        : <Volume2 className="h-4 w-4"/>
-                                    }
-                                </Button>
+                                <AudioPlayer 
+                                    word={result.word} 
+                                    onGenerateAudio={generateAudio}
+                                    debug={isDebugMode}
+                                />
                             </CardHeader>
                             <CardContent className="p-6 relative">
                                 <p className="text-gray-600 mb-4">
@@ -193,7 +170,6 @@ const ImageUploader = () => {
                                 <p className="text-sm text-gray-500 italic">
                                     "{result.sampleSentence}"
                                 </p>
-                                {audioUrl && <audio src={audioUrl} controls />}
                                 <div className="absolute right-4 bottom-4 flex gap-2">
                                     <Button
                                         onClick={() => handleFeedback('like')}
