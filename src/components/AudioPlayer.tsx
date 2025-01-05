@@ -24,6 +24,10 @@ export const AudioPlayer = ({ word, onGenerateAudio, debug = false }: AudioPlaye
         const audioData = await onGenerateAudio(word);
         console.log(`Received audio data. Size: ${audioData.byteLength} bytes`);
         
+        if (!audioData || audioData.byteLength === 0) {
+          throw new Error('Invalid audio data received');
+        }
+        
         const blob = new Blob([audioData], { type: 'audio/mpeg' });
         const url = URL.createObjectURL(blob);
         

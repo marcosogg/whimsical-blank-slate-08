@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -15,10 +16,10 @@ serve(async (req) => {
   try {
     const { text } = await req.json();
 
-    if (!text) {
-      console.error('No text provided for audio generation');
+    if (!text || typeof text !== 'string') {
+      console.error('Invalid or missing text input:', text);
       return new Response(
-        JSON.stringify({ error: 'No text provided' }),
+        JSON.stringify({ error: 'Invalid or missing text input' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -26,7 +27,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Starting audio generation for text: "${text}"`);
+    console.log(`Generating audio for text: "${text}"`);
 
     const openai = new OpenAI({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
@@ -39,10 +40,19 @@ serve(async (req) => {
       response_format: 'mp3',
     });
 
-    console.log('OpenAI API response received successfully');
-    const audioData = await response.arrayBuffer();
-    console.log(`Generated MP3 audio. Size: ${audioData.byteLength} bytes`);
+    if (!response) {
+      throw new Error('Failed to generate audio: No response from OpenAI');
+    }
 
+    const audioData = await response.arrayBuffer();
+    
+    if (!audioData || audioData.byteLength === 0) {
+      throw new Error('Failed to generate audio: Empty audio data received');
+    }
+
+    console.log(`Successfully generated MP3 audio. Size: ${audioData.byteLength} bytes`);
+
+    // Set proper headers for audio streaming
     const headers = {
       ...corsHeaders,
       'Content-Type': 'audio/mpeg',
